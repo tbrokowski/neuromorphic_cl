@@ -50,7 +50,7 @@ The system consists of four primary modules:
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/tbrokowski/neuromorphic_cl.git
 cd neuromorphic_cl_system
 
 # Create virtual environment
