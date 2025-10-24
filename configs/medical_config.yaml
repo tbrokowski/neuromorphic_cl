@@ -1,0 +1,228 @@
+# Neuromorphic Continual Learning System - Medical Imaging Configuration
+# Optimized configuration for medical document and image processing
+
+experiment_name: "neuromorphic_cl_medical"
+project_name: "neuromorphic-continual-learning-medical"
+seed: 42
+deterministic: true
+benchmark: true
+
+# Directories
+log_dir: "logs"
+checkpoint_dir: "checkpoints"
+output_dir: "outputs"
+
+# Tags for experiment tracking
+tags: ["medical", "radiology", "continual-learning", "neuromorphic"]
+notes: "Medical imaging focused configuration with larger prototypes and higher resolution"
+
+# Concept Encoder - Optimized for medical images
+concept_encoder:
+  encoder_type: "vit"  # ViT works well for medical images
+  embedding_dim: 768
+  projection_dim: 512  # Larger projection for complex medical concepts
+  freeze_backbone: true
+  unfreeze_last_n_blocks: 3  # Unfreeze more layers for medical adaptation
+  max_tokens_per_page: 2048  # More tokens for detailed medical documents
+  contrastive_temperature: 0.05  # Lower temperature for medical precision
+  dropout_rate: 0.1
+  
+  # Use larger ViT for better medical performance
+  vit_model_name: "google/vit-large-patch16-224"
+  target_resolution: [384, 384]  # Higher resolution for medical details
+
+# Prototype Manager - More prototypes for medical diversity
+prototype_manager:
+  similarity_threshold: 0.8  # Slightly lower for medical concept nuances
+  ema_alpha: 0.99
+  max_prototypes: 15000  # More prototypes for diverse medical concepts
+  merge_threshold: 0.92  # Conservative merging for medical precision
+  split_variance_threshold: 1.5  # More sensitive splitting
+  indexing_backend: "faiss"
+  
+  # FAISS settings optimized for larger prototype set
+  faiss_index_type: "IndexIVFFlat"  # Better for large-scale search
+  faiss_nprobe: 64
+  
+  # More frequent maintenance for medical data
+  maintenance_interval: 500
+  merge_split_interval: 2500
+
+# SNN - Configured for medical concept associations
+snn:
+  neuron_type: "plif"  # Parametric LIF for better learning
+  num_timesteps: 25  # Longer simulation for complex associations
+  spike_threshold: 1.0
+  reset_potential: 0.0
+  membrane_potential_decay: 0.95  # Longer memory
+  
+  # Enhanced STDP for medical concept learning
+  stdp_lr: 0.008
+  stdp_tau_pre: 25.0  # Longer temporal windows
+  stdp_tau_post: 25.0
+  reward_modulation: true
+  
+  # Network topology for medical associations
+  lateral_connectivity: 0.15  # More connectivity for concept associations
+  recurrent_strength: 0.6
+  
+  # More frequent consolidation for medical knowledge
+  consolidation_interval: 1500
+  replay_duration: 150
+  replay_strength: 0.9
+
+# Answer Composer - Medical QA focused
+answer_composer:
+  top_k_prototypes: 15  # More prototypes for complex medical reasoning
+  active_basin_threshold: 0.08  # Lower threshold for inclusive reasoning
+  evidence_slate_size: 8  # More evidence for medical decisions
+  llm_model_name: "microsoft/BioGPT-Large"  # Medical-specific language model
+  max_response_length: 256  # Concise medical responses
+  temperature: 0.3  # Lower temperature for medical precision
+
+# Data Configuration - Medical datasets
+data:
+  # Medical dataset paths (configure for your setup)
+  pubmed_path: "/data/pubmed/open_access"
+  mimic_cxr_path: "/data/mimic-cxr-jpg"
+  vqa_rad_path: "/data/vqa-rad"
+  bioasq_path: "/data/bioasq"
+  
+  # Data loading optimized for medical images
+  batch_size: 16  # Smaller batches for high-res medical images
+  num_workers: 8
+  pin_memory: true
+  prefetch_factor: 3
+  
+  # Medical image preprocessing
+  image_size: [384, 384]  # Higher resolution for medical details
+  text_max_length: 768  # Longer text for medical descriptions
+  augmentation_prob: 0.2  # Conservative augmentation for medical images
+  
+  # Streaming parameters
+  streaming_buffer_size: 2000
+  shuffle_buffer_size: 8000
+
+# Training Configuration - Medical domain adaptation
+training:
+  # Optimization for medical domain
+  learning_rate: 5e-5  # Lower LR for careful medical adaptation
+  weight_decay: 1e-4  # Higher weight decay for regularization
+  optimizer: "adamw"
+  scheduler: "cosine"
+  
+  # Training dynamics
+  max_epochs: 100  # More epochs for medical domain
+  max_steps: null
+  gradient_clip_norm: 0.5  # Aggressive clipping for stability
+  accumulate_grad_batches: 2  # Larger effective batch size
+  
+  # Loss weights tuned for medical tasks
+  loss_weights:
+    infonce: 1.2  # Higher weight for visual-text alignment
+    supervised_contrastive: 0.8
+    prototype_alignment: 0.5
+    clip_supcon: 1.0
+    pull_push: 0.3
+  
+  # Validation
+  val_check_interval: 0.5  # More frequent validation
+  num_sanity_val_steps: 3
+  
+  # Checkpointing
+  save_top_k: 5
+  monitor_metric: "val/f1"  # F1 score for medical classification
+  mode: "max"
+
+# Distributed Training - Multi-GPU medical training
+distributed:
+  backend: "nccl"
+  num_nodes: 1
+  num_gpus_per_node: 4  # Multi-GPU for medical images
+  
+  # DDP settings
+  find_unused_parameters: false
+  gradient_as_bucket_view: true
+  static_graph: false
+  
+  # Communication
+  timeout_seconds: 3600  # Longer timeout for medical training
+  
+  # Sharding for large medical models
+  use_fsdp: false  # Keep false for prototype synchronization
+  fsdp_sharding_strategy: "FULL_SHARD"
+  fsdp_backward_prefetch: "BACKWARD_PRE"
+  
+  # Mixed precision for medical images
+  precision: "16-mixed"
+
+# Evaluation Configuration - Medical metrics
+evaluation:
+  # Medical-specific metrics
+  compute_forgetting: true
+  compute_transfer: true
+  compute_memory_efficiency: true
+  compute_energy_efficiency: true
+  
+  # Medical baselines
+  run_baselines: true
+  baseline_methods:
+    - "sequential_finetune"
+    - "experience_replay"
+    - "ewc"
+    - "rag"
+    - "prototype_only"
+    - "snn_only"
+  
+  # Medical test settings
+  test_batch_size: 32
+  num_test_tasks: 10  # More tasks for medical evaluation
+  shots_per_task: 200
+
+# Logging
+log_level: "INFO"
+
+# Resource management for medical training
+max_memory_gb: 80  # Higher memory for medical images
+cpu_limit: null
+
+# Medical-specific kill/continue gates
+gates:
+  semantic_probes:
+    enabled: true
+    test_medical_entities: true
+    test_negations: true
+    test_units: true
+    min_accuracy: 0.85
+  
+  ablation_requirements:
+    snn_vs_knn_improvement: 0.05
+    max_latency_multiplier: 1.3
+  
+  drift_handling:
+    guideline_evolution_test: true
+    concept_stability_threshold: 0.9
+  
+  provenance:
+    require_source_pointers: true
+    evidence_thumbnails: true
+  
+  failure_handling:
+    math_table_abstention: true
+    automated_triggers: true
+  
+  adaptive_novelty:
+    bayesian_threshold: true
+    growth_rate_limits: true
+  
+  confidence_calibration:
+    geometric_margin: true
+    basin_entropy: true
+    llm_calibration: true
+
+# Medical data quality gates
+data_quality:
+  min_image_resolution: [256, 256]
+  max_aspect_ratio: 3.0
+  require_dicom_tags: false  # Set true if using DICOM
+  anonymization_check: true

@@ -1,0 +1,194 @@
+# Neuromorphic Continual Learning System Configuration
+# Basic configuration for getting started
+
+experiment_name: "neuromorphic_cl_demo"
+project_name: "neuromorphic-continual-learning"
+seed: 42
+deterministic: true
+benchmark: true
+
+# Directories
+log_dir: "logs"
+checkpoint_dir: "checkpoints"
+output_dir: "outputs"
+
+# Concept Encoder Configuration
+concept_encoder:
+  encoder_type: "vit"  # Options: vit, deepseek_ocr, donut, layoutlmv3
+  embedding_dim: 768
+  projection_dim: 256
+  freeze_backbone: true
+  unfreeze_last_n_blocks: 2
+  max_tokens_per_page: 1024
+  contrastive_temperature: 0.07
+  dropout_rate: 0.1
+  
+  # Model-specific settings
+  vit_model_name: "google/vit-base-patch16-224"
+  donut_model_name: "naver-clova-ix/donut-base"
+  layoutlm_model_name: "microsoft/layoutlmv3-base"
+  target_resolution: [224, 224]
+
+# Prototype Manager Configuration
+prototype_manager:
+  similarity_threshold: 0.85
+  ema_alpha: 0.99
+  max_prototypes: 5000
+  merge_threshold: 0.95
+  split_variance_threshold: 2.0
+  indexing_backend: "faiss"  # Options: faiss, hnswlib
+  
+  # FAISS settings
+  faiss_index_type: "IndexFlatIP"
+  faiss_nprobe: 32
+  
+  # HNSWLIB settings
+  hnswlib_ef_construction: 200
+  hnswlib_m: 16
+  hnswlib_ef: 50
+  
+  # Maintenance
+  maintenance_interval: 1000
+  merge_split_interval: 5000
+
+# Spiking Neural Network Configuration
+snn:
+  neuron_type: "lif"  # Options: lif, plif, alif
+  num_timesteps: 20
+  spike_threshold: 1.0
+  reset_potential: 0.0
+  membrane_potential_decay: 0.9
+  
+  # STDP parameters
+  stdp_lr: 0.01
+  stdp_tau_pre: 20.0
+  stdp_tau_post: 20.0
+  reward_modulation: true
+  
+  # Network topology
+  lateral_connectivity: 0.1
+  recurrent_strength: 0.5
+  
+  # Consolidation
+  consolidation_interval: 2000
+  replay_duration: 100
+  replay_strength: 0.8
+
+# Answer Composer Configuration
+answer_composer:
+  top_k_prototypes: 10
+  active_basin_threshold: 0.1
+  evidence_slate_size: 5
+  llm_model_name: "microsoft/DialoGPT-medium"
+  max_response_length: 512
+  temperature: 0.7
+
+# Data Configuration
+data:
+  # Dataset paths (update these for your setup)
+  pubmed_path: null  # "/path/to/pubmed/data"
+  mimic_cxr_path: null  # "/path/to/mimic-cxr"
+  vqa_rad_path: null  # "/path/to/vqa-rad"
+  bioasq_path: null  # "/path/to/bioasq"
+  
+  # Data loading
+  batch_size: 32
+  num_workers: 4
+  pin_memory: true
+  prefetch_factor: 2
+  
+  # Preprocessing
+  image_size: [224, 224]
+  text_max_length: 512
+  augmentation_prob: 0.3
+  
+  # Streaming
+  streaming_buffer_size: 1000
+  shuffle_buffer_size: 10000
+
+# Training Configuration
+training:
+  # Optimization
+  learning_rate: 1e-4
+  weight_decay: 1e-5
+  optimizer: "adamw"  # Options: adam, adamw, sgd, rmsprop
+  scheduler: "cosine"  # Options: cosine, linear, step, plateau
+  
+  # Training dynamics
+  max_epochs: 50
+  max_steps: null
+  gradient_clip_norm: 1.0
+  accumulate_grad_batches: 1
+  
+  # Loss weights
+  loss_weights:
+    infonce: 1.0
+    supervised_contrastive: 0.5
+    prototype_alignment: 0.3
+    clip_supcon: 0.7
+    pull_push: 0.4
+  
+  # Validation
+  val_check_interval: 1.0
+  num_sanity_val_steps: 2
+  
+  # Checkpointing
+  save_top_k: 3
+  monitor_metric: "val/accuracy"
+  mode: "max"
+
+# Distributed Training Configuration
+distributed:
+  backend: "nccl"  # Options: nccl, gloo, mpi
+  num_nodes: 1
+  num_gpus_per_node: 1
+  
+  # DDP settings
+  find_unused_parameters: false
+  gradient_as_bucket_view: true
+  static_graph: false
+  
+  # Communication
+  timeout_seconds: 1800
+  
+  # Sharding strategies
+  use_fsdp: false
+  fsdp_sharding_strategy: "FULL_SHARD"
+  fsdp_backward_prefetch: "BACKWARD_PRE"
+  
+  # Precision
+  precision: "16-mixed"  # Options: 16, 32, 64, 16-mixed, bf16-mixed
+
+# Evaluation Configuration
+evaluation:
+  # Metrics
+  compute_forgetting: true
+  compute_transfer: true
+  compute_memory_efficiency: true
+  compute_energy_efficiency: true
+  
+  # Baselines
+  run_baselines: true
+  baseline_methods:
+    - "sequential_finetune"
+    - "experience_replay"
+    - "ewc"
+    - "rag"
+    - "prototype_only"
+    - "snn_only"
+  
+  # Test settings
+  test_batch_size: 64
+  num_test_tasks: 5
+  shots_per_task: 100
+
+# Experiment metadata
+tags: []
+notes: ""
+
+# Logging
+log_level: "INFO"
+
+# Resource management
+max_memory_gb: null
+cpu_limit: null
